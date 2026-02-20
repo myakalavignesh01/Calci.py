@@ -273,7 +273,7 @@ if not st.session_state.get("app_started", False):
             st.session_state["program"] = program
             st.session_state["app_started"] = True
             st.session_state.setdefault("semesters", {})  # keep saved sems
-            st.experimental_rerun()
+            st.rerun()
     else:
         st.stop()
 
@@ -621,7 +621,7 @@ elif choice == "Admin":
                         pass
                 save_history([])
                 st.success("History reset and files deleted.")
-                st.experimental_rerun()
+                st.rerun()
     else:
         # show login card with pre-filled values
         st.markdown('<div class="admin-card">', unsafe_allow_html=True)
@@ -633,7 +633,7 @@ elif choice == "Admin":
             st.session_state["admin_authenticated"] = True
             st.session_state["admin_user"] = ADMIN_USER
             st.success("Admin logged in automatically!")
-            st.experimental_rerun()
+            st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------------
