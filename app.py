@@ -564,88 +564,150 @@ elif choice == "View Saved Results":
                     st.error(f"Delete failed: {e}")
 
 # -------------------------
-# Feature: Admin (Premium Auto-fill + Auto-login)
+# -------------------------
+# Feature: Admin (Secure Login)
 # -------------------------
 elif choice == "Admin":
-    # Premium admin card and auto-login (Option B)
+
     st.header("Admin — Secure Panel (Export / Ratings / Reset)")
 
-    # --- Auto-admin credentials (kept here for local use) ---
-    AUTO_ADMIN_USER = "Myakala.Vignesh"
-    AUTO_ADMIN_PASS = "Vignesh@2025"
-
-    # Try to read from secrets or env if available (but auto-fill still works)
-    try:
-        ADMIN_USER = st.secrets.get('admin', {}).get('username', AUTO_ADMIN_USER)
-        ADMIN_PASS = st.secrets.get('admin', {}).get('password', AUTO_ADMIN_PASS)
-    except Exception:
-        ADMIN_USER = os.environ.get('ADMIN_USER', AUTO_ADMIN_USER)
-        ADMIN_PASS = os.environ.get('ADMIN_PASSWORD', AUTO_ADMIN_PASS)
+    # Admin credentials
+    ADMIN_USER = "admin"
+    ADMIN_PASS = "CalciPy@Admin2026"
 
     # Premium UI CSS
     st.markdown("""
     <style>
-      .admin-card { background: rgba(255,255,255,0.04); padding: 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); }
-      .admin-title { font-size: 26px; font-weight:700; color:#E8F1FF }
-      .logged-banner { padding: 12px; background: linear-gradient(90deg, #4e54c8, #8f94fb); color: white; border-radius: 10px; font-size: 16px; text-align:center; }
+      .admin-card {
+          background: rgba(255,255,255,0.04);
+          padding: 20px;
+          border-radius: 14px;
+          border: 1px solid rgba(255,255,255,0.06);
+      }
+      .admin-title {
+          font-size: 26px;
+          font-weight:700;
+          color:#E8F1FF
+      }
+      .logged-banner {
+          padding: 12px;
+          background: linear-gradient(90deg,#4e54c8,#8f94fb);
+          color:white;
+          border-radius:10px;
+          font-size:16px;
+          text-align:center;
+      }
     </style>
     """, unsafe_allow_html=True)
 
+    # -------------------------
+    # If Admin Logged In
+    # -------------------------
     if st.session_state.get("admin_authenticated", False):
-        st.markdown(f'<div class="logged-banner">👑 Welcome back, {st.session_state.get("admin_user")} (Admin)</div>', unsafe_allow_html=True)
+
+        st.markdown(
+            f'<div class="logged-banner">👑 Welcome {st.session_state.get("admin_user")} (Admin)</div>',
+            unsafe_allow_html=True
+        )
+
         history = load_history()
+
         if not history:
             st.info("No history entries yet.")
         else:
+
             hist_df = pd.json_normalize(history)
             st.dataframe(hist_df.fillna("").head(200))
+
+            # Export history
             if st.button("Export All History to Excel"):
                 out_path = RESULTS_DIR / f"all_history_{now_ts()}.xlsx"
+
                 try:
                     hist_df.to_excel(out_path, index=False)
+
                     st.success(f"Saved: {out_path}")
-                    st.download_button("Download Excel", data=out_path.read_bytes(), file_name=out_path.name, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+                    st.download_button(
+                        "Download Excel",
+                        data=out_path.read_bytes(),
+                        file_name=out_path.name,
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+
                 except Exception as e:
                     st.error(f"Export failed: {e}")
+
+            # Ratings analytics
             ratings = [h.get("rating") for h in history if h.get("rating") is not None]
+
             if ratings:
-                avg_rating = sum(ratings)/len(ratings)
-                st.metric("Average Plan Rating", f"{avg_rating:.2f} / 5", delta=f"{len(ratings)} ratings")
+
+                avg_rating = sum(ratings) / len(ratings)
+
+                st.metric(
+                    "Average Plan Rating",
+                    f"{avg_rating:.2f} / 5",
+                    delta=f"{len(ratings)} ratings"
+                )
+
             else:
                 st.info("No ratings recorded yet.")
+
+            # Reset system
             if st.button("Reset History (delete files & records)"):
+
                 for f in RESULTS_DIR.glob("*"):
                     try:
                         f.unlink()
                     except:
                         pass
-                save_history([])
-                st.success("History reset and files deleted.")
-                st.rerun()
-    else:
-        # show login card with pre-filled values
-        st.markdown('<div class="admin-card">', unsafe_allow_html=True)
-        st.markdown('<div class="admin-title">Admin Login</div>', unsafe_allow_html=True)
-        username = st.text_input("Admin username", value=ADMIN_USER)
-        password = st.text_input("Admin password", value=ADMIN_PASS, type="password")
-        st.info("Auto-filled credentials detected. Logging you in…")
-        if username == ADMIN_USER and password == ADMIN_PASS:
-            st.session_state["admin_authenticated"] = True
-            st.session_state["admin_user"] = ADMIN_USER
-            st.success("Admin logged in automatically!")
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
-# -------------------------
-# Footer
-# -------------------------
-st.markdown("---")
-st.markdown(f"""
-<div style='text-align:center; color:gray;'>
-© {YEAR} • {APP_TITLE} • Built by <b>{AUTHOR}</b> • Public App — {SCHOOL} &bull; 
-<a href='https://github.com/myakalavignesh01/calci' target='_blank' style='color:#9CDCFE'>GitHub</a> &nbsp; • Made with <a href='https://streamlit.io' target='_blank'>Streamlit</a>
-</div>
-""", unsafe_allow_html=True)
+                save_history([])
+
+                st.success("History reset and files deleted.")
+
+                st.rerun()
+
+        # Logout button
+        if st.button("Logout"):
+            st.session_state["admin_authenticated"] = False
+            st.rerun()
+
+    # -------------------------
+    # Login Screen
+    # -------------------------
+    else:
+
+        st.markdown('<div class="admin-card">', unsafe_allow_html=True)
+
+        st.markdown(
+            '<div class="admin-title">Admin Login</div>',
+            unsafe_allow_html=True
+        )
+
+        username = st.text_input("Admin Username")
+
+        password = st.text_input(
+            "Admin Password",
+            type="password"
+        )
+
+        if st.button("Login"):
+
+            if username == ADMIN_USER and password == ADMIN_PASS:
+
+                st.session_state["admin_authenticated"] = True
+                st.session_state["admin_user"] = username
+
+                st.success("Admin login successful!")
+
+                st.rerun()
+
+            else:
+                st.error("Invalid username or password")
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------------
 # Persistent User Rating Section (saved to history.json)
