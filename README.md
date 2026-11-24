@@ -16,6 +16,7 @@
 ```
 
 ### 🎓 A GPA Companion With Opinions About Your Study Habits
+> **GrowthX Off Campus code:** `XG25U5`
 
 [![Live Demo](https://img.shields.io/badge/⚡_LIVE_DEMO-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://calcipy-livewebapp.streamlit.app/)
 [![Python](https://img.shields.io/badge/Built_With-Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
